@@ -48,6 +48,8 @@ class ConsoleInterpreterWindow(QtWidgets.QWidget):
 
         self.setWindowTitle("AYON Console")
         self.setWindowIcon(QtGui.QIcon(resources.get_ayon_icon_filepath()))
+        # Ensure treated as a regular top-level window
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.Window)
 
         if controller is None:
             controller = InterpreterController()

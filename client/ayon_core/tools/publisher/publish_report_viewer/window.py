@@ -603,6 +603,8 @@ class PublishReportViewerWindow(QtWidgets.QWidget):
         self.setWindowTitle("Publish report viewer")
         icon = QtGui.QIcon(get_ayon_icon_filepath())
         self.setWindowIcon(icon)
+        # Ensure treated as a regular top-level window
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.Window)
 
         body = QtWidgets.QSplitter(self)
         body.setContentsMargins(0, 0, 0, 0)

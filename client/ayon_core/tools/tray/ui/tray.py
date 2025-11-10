@@ -27,6 +27,7 @@ from ayon_core.pipeline import install_ayon_plugins
 from ayon_core.tools.utils import (
     WrappedCallbackItem,
     get_ayon_qt_app,
+    bring_app_to_front_mac,
 )
 from ayon_core.tools.tray.lib import (
     set_tray_server_url,
@@ -582,16 +583,22 @@ class TrayManager:
             self._info_widget = InfoWidget()
 
         self._info_widget.show()
+        self._info_widget.showNormal()
         self._info_widget.raise_()
         self._info_widget.activateWindow()
+        if sys.platform == "darwin":
+            bring_app_to_front_mac()
 
     def _show_launcher_window(self):
         if self._launcher_window is None:
             self._launcher_window = LauncherWindow()
 
         self._launcher_window.show()
+        self._launcher_window.showNormal()
         self._launcher_window.raise_()
         self._launcher_window.activateWindow()
+        if sys.platform == "darwin":
+            bring_app_to_front_mac()
 
     def _show_browser_window(self):
         if self._browser_window is None:
@@ -600,19 +607,28 @@ class TrayManager:
             install_ayon_plugins()
 
         self._browser_window.show()
+        self._browser_window.showNormal()
         self._browser_window.raise_()
         self._browser_window.activateWindow()
+        if sys.platform == "darwin":
+            bring_app_to_front_mac()
 
     def _show_console_window(self):
         self._console_window.show()
+        self._console_window.showNormal()
         self._console_window.raise_()
         self._console_window.activateWindow()
+        if sys.platform == "darwin":
+            bring_app_to_front_mac()
 
     def _show_publish_report_viewer(self):
         self._publish_report_viewer_window.refresh()
         self._publish_report_viewer_window.show()
+        self._publish_report_viewer_window.showNormal()
         self._publish_report_viewer_window.raise_()
         self._publish_report_viewer_window.activateWindow()
+        if sys.platform == "darwin":
+            bring_app_to_front_mac()
 
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
@@ -741,6 +757,11 @@ class TrayStarter(QtCore.QObject):
         self._timer_counter = 0
         self._start_timer = start_timer
 
+        # macOS: briefly show/hide a real top-level window so the app
+        # registers in Cmd+Tab. Do after event loop starts.
+        if sys.platform == "darwin":
+            QtCore.QTimer.singleShot(0, self._register_main_window_mac)
+
     def _on_start_timer(self):
         if self._tray_widget.is_closing():
             self._start_timer.stop()
@@ -770,6 +791,16 @@ class TrayStarter(QtCore.QObject):
         if self._splash is None:
             self._splash = self._create_splash()
         return self._splash
+
+    def _register_main_window_mac(self):
+        # Show a tiny window once to register the app in Cmd+Tab
+        try:
+            self._main_window.setWindowTitle("AYON")
+            self._main_window.resize(1, 1)
+            self._main_window.show()
+            self._main_window.hide()
+        except Exception:
+            pass
 
     def _create_splash(self):
         splash_pix = QtGui.QPixmap(resources.get_ayon_splash_filepath())

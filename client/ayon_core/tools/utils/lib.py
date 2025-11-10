@@ -198,6 +198,33 @@ def get_ayon_qt_app():
 
     app = get_qt_app()
     app.setWindowIcon(QtGui.QIcon(get_app_icon_path()))
+    # macOS: make the app a Regular app so it shows in Dock/Cmd+Tab
+    if sys.platform == "darwin":
+        try:
+            from AppKit import (
+                NSApp,
+                NSApplicationActivationPolicyRegular,
+                NSRunningApplication,
+                NSApplicationActivateIgnoringOtherApps,
+                NSApplicationActivateAllWindows,
+            )
+            NSApp.setActivationPolicy_(NSApplicationActivationPolicyRegular)
+            # Ensure foreground right after the event loop starts (both APIs)
+            def _front_app():
+                try:
+                    NSApp.activateIgnoringOtherApps_(True)
+                except Exception:
+                    pass
+                try:
+                    NSRunningApplication.currentApplication().activateWithOptions_(
+                        NSApplicationActivateIgnoringOtherApps | NSApplicationActivateAllWindows
+                    )
+                except Exception:
+                    pass
+            QtCore.QTimer.singleShot(0, _front_app)
+        except Exception:
+            # If pyobjc is not available, fail silently
+            pass
     return app
 
 
@@ -641,3 +668,16 @@ def get_qta_icon_by_name_and_color(icon_name, icon_color):
 
     """
     return _IconsCache.get_qta_icon_by_name_and_color(icon_name, icon_color)
+
+
+def bring_app_to_front_mac():
+    """Bring the macOS app to front (one-shot activation).
+
+    Assumes caller already checked platform == 'darwin'.
+    """
+    try:
+        from AppKit import NSApp
+        NSApp.activateIgnoringOtherApps_(True)
+    except Exception:
+        # If pyobjc is not available, fail silently
+        pass

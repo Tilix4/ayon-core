@@ -42,6 +42,7 @@ from .lib import (
     get_qt_app,
     get_ayon_qt_app,
     get_qt_icon,
+    bring_app_to_front_mac,
 )
 
 from .models import (
@@ -129,6 +130,7 @@ __all__ = (
     "get_qt_app",
     "get_ayon_qt_app",
     "get_qt_icon",
+    "bring_app_to_front_mac",
 
     "RecursiveSortFilterProxyModel",
 
